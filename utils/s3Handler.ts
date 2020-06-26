@@ -7,23 +7,22 @@ const ARCHIVE_CONTENT_TYPE = 'application/zip';
 class S3Handler {
   constructor() { }
 
-  readStream(_Bucket: string, _Key: string) {
-    return S3.getObject({ Bucket: _Bucket, Key: _Key }).createReadStream()
+  readStream(Bucket: string, Key: string) {
+    return S3.getObject({ Bucket, Key }).createReadStream()
   }
 
-  writeStream(_Bucket: string, _Key: string) {
+  writeStream(Bucket: string, region: string, Key: string) {
     const streamPassThrough = new Stream.PassThrough();
 
     const params: AWS.S3.PutObjectRequest = {
       ACL: 'private',
       Body: streamPassThrough,
-      Bucket: _Bucket,
+	  Bucket,
+	  region,
       ContentType: ARCHIVE_CONTENT_TYPE,
-      Key: _Key,
+	  Key
 	};
 	
-	console.log("Params "+ JSON.stringify(params));
-
     return {
       s3StreamUpload: streamPassThrough,
       uploaded: S3.upload(params, (error: Error): void => {

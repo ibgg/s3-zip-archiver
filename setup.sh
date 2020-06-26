@@ -42,8 +42,8 @@ echo "Creating lambda function $FUNCTION_NAME..."
 aws lambda create-function --function-name arn:aws:lambda:$REGION:$USERID:function:$FUNCTION_NAME --zip-file fileb://function.zip --handler index.handler --runtime nodejs12.x --role arn:aws:iam::$USERID:role/$ROLE_NAME
 
 #Update function to set environment variables
-echo "Updating function to set environment variables: $BUCKET_NAME..."
-aws lambda update-function-configuration --function-name $FUNCTION_NAME --environment "Variables={BUCKET=$BUCKET_NAME}"
+echo "Updating function to set environment variables: $BUCKET_NAME and $REGION..."
+aws lambda update-function-configuration --function-name $FUNCTION_NAME --environment "Variables={BUCKET=$BUCKET_NAME, REGION=$REGION}"
 
 #Create API REST gateway
 # Documentación https://docs.aws.amazon.com/es_es/lambda/latest/dg/services-apigateway-tutorial.html
