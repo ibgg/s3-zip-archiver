@@ -7,35 +7,36 @@ type S3DownloadStreamDetails = { stream: Readable; filename: string };
 
 interface Zip {
 	keys: string[];
-	archiveFilePath: string;
+	archiveFileName: string;
 	archiveFolderPath: string;
 	archiveFormat: Archiver.Format;
 }
 
 class ZipHandler {
 	keys: string[];
-	archiveFilePath: string;
+	archiveFileName: string;
 	archiveFolderPath: string;
 	archiveFormat: Archiver.Format;
-	constructor(keys: string[], archiveFilePath: string, archiveFolderPath: string, archiveFormat: Archiver.Format) {
+	constructor(keys: string[], archiveFileName: string, archiveFolderPath: string, archiveFormat: Archiver.Format) {
 		this.keys = keys;
-		this.archiveFilePath = archiveFilePath;
+		this.archiveFileName = archiveFileName;
 		this.archiveFolderPath = archiveFolderPath;
 		this.archiveFormat = archiveFormat;
 	}
 
 	s3DownloadStreams(): S3DownloadStreamDetails[] {
 		return this.keys.map((key: string) => {
-			let _fname = `${this.archiveFolderPath}/${path.basename(key)}`;
+			//let _fname = `${path.basename(key)}`;
 			return {
-				stream: s3Handler.readStream(process.env.BUCKET, _fname),
+				stream: s3Handler.readStream(process.env.BUCKET, key),
 				filename: `${path.basename(key)}`,
 			};
 		});
 	}
 
 	async process() {
-		const { s3StreamUpload, uploaded } = s3Handler.writeStream(process.env.BUCKET, process.env.REGION, this.archiveFilePath);
+		let _fname = `${this.archiveFolderPath}/${this.archiveFileName}`;
+		const { s3StreamUpload, uploaded } = s3Handler.writeStream(process.env.BUCKET, process.env.REGION, _fname);
 		const s3DownloadStreams = this.s3DownloadStreams();
 
 		await new Promise((resolve, reject) => {
@@ -52,7 +53,8 @@ class ZipHandler {
 			});
 
 			archive.pipe(s3StreamUpload);
-			s3DownloadStreams.forEach((streamDetails: S3DownloadStreamDetails) => archive.append(streamDetails.stream, { name: streamDetails.filename }));
+			s3DownloadStreams.forEach((streamDetails: S3DownloadStreamDetails) => {
+				archive.append(streamDetails.stream, { name: streamDetails.filename })});
 			archive.finalize();
 		}).catch((error: { code: string; message: string; data: string }) => {
 			throw new Error(`${error.code} ${error.message} ${error.data}`);
@@ -67,13 +69,13 @@ export const handler: Function = async (event: Zip) => {
   console.time('zipProcess');
   console.log(event);
 
-  const { keys, archiveFilePath, archiveFolderPath, archiveFormat } = event;
+  const { keys, archiveFileName, archiveFolderPath, archiveFormat } = event;
 
-  const zipHandler = new ZipHandler(keys, archiveFilePath, archiveFolderPath, archiveFormat);
+  const zipHandler = new ZipHandler(keys, archiveFileName, archiveFolderPath, archiveFormat);
   await zipHandler.process();
 
   const response = successResponse({
-    message: archiveFilePath
+    message: archiveFileName
   });
 
   console.timeEnd('zipProcess');
