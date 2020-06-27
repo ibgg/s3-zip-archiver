@@ -7,6 +7,19 @@ const ARCHIVE_CONTENT_TYPE = 'application/zip';
 class S3Handler {
   constructor() { }
 
+  async fileExists(Bucket: string, Key: string) {
+	try {
+		await S3.headObject({ Bucket, Key }).promise();
+		return true;
+	  } catch (error) {
+		if (error.statusCode === 404 || error.code === "NotFound") {
+			console.log('File Not Found!');
+			error.errorMessage = "File not found: " + Key;
+		}
+		throw error;
+	  }
+  }
+
   readStream(Bucket: string, Key: string) {
     return S3.getObject({ Bucket, Key }).createReadStream()
   }
