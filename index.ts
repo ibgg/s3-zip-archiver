@@ -75,7 +75,7 @@ export const handler: Function = async (event: Zip) => {
   await zipHandler.process();
 
   const response = successResponse({
-    message: archiveFileName
+    message: `${archiveFolderPath}/${archiveFileName}`
   });
 
   console.timeEnd('zipProcess');
