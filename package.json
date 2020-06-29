@@ -1,0 +1,28 @@
+{
+  "name": "s3-zip-archiver",
+  "version": "1.0.0",
+  "description": "Zip archiver",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ibgg/s3-zip-archiver.git"
+  },
+  "keywords": [
+    "zip",
+    "archiver",
+    "s3",
+    "aws"
+  ],
+  "author": "holmes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ibgg/s3-zip-archiver/issues"
+  },
+  "homepage": "https://github.com/ibgg/s3-zip-archiver#readme",
+  "dependencies": {
+    "archiver": "^4.0.1"
+  }
+}
