@@ -45,8 +45,14 @@ class ZipHandler {
 				throw new Error(`${error.name} ${error.code} ${error.message} ${error.path} ${error.stack}`);
 			});
 
-			s3StreamUpload.on('close', resolve);
-			s3StreamUpload.on('end', resolve);
+			s3StreamUpload.on('close', function (){
+				console.log("here in on close");
+				resolve();
+			});
+			s3StreamUpload.on('end', function (){
+				console.log("here in on end");
+				resolve();
+			});
 			s3StreamUpload.on('error', reject);
 			s3StreamUpload.on('httpUploadProgress', (progress: { loaded: number; total: number; part: number; key: string }): void => {
 				console.log(progress); // { loaded: 4915, total: 192915, part: 1, key: 'foo.jpg' }

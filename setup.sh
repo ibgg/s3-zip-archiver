@@ -14,8 +14,25 @@ REST_RESOURCE_NAME="files-archiver"
 STAGE_NAME="prod"
 STATEMENT_TEST_ID="apigateway-test-$REST_RESOURCE_NAME"
 STATEMENT_PROD_ID="apigateway-prod-$REST_RESOURCE_NAME"
+TIMEOUT=120
 
 echo ":::::::AWS S3 Zip archiver:::::::"
+
+#Cleaning previous javascript generated files from typescript
+#echo "Cleaning previous setup"
+#rm index.js utils/*.js function.zip
+
+#Installing required dependences
+echo "Installing dependences..."
+npm install archiver
+
+#Compiling typescript files
+echo "Compiling typescript file..."
+tsc
+
+# zip function
+echo "Zipping function and dependences"
+ zip -r function.zip index.js utils/*.js node_modules 
 
 #Set region in aws cli
 echo "Settin region $REGION.."
@@ -33,17 +50,13 @@ aws iam create-role --role-name $ROLE_NAME --assume-role-policy-document file://
 echo "Attaching permissions policy to role $ROLE_NAME created"
 aws iam attach-role-policy --role-name $ROLE_NAME --policy-arn arn:aws:iam::aws:policy/AWSLambdaExecute
 
-# zip function
-echo "Zipping function and dependences"
-zip function.zip index.js
-
 #Create function
 echo "Creating lambda function $FUNCTION_NAME..."
 aws lambda create-function --function-name arn:aws:lambda:$REGION:$USERID:function:$FUNCTION_NAME --zip-file fileb://function.zip --handler index.handler --runtime nodejs12.x --role arn:aws:iam::$USERID:role/$ROLE_NAME
 
-#Update function to set environment variables
-echo "Updating function to set environment variables: $BUCKET_NAME and $REGION..."
-aws lambda update-function-configuration --function-name $FUNCTION_NAME --environment "Variables={BUCKET=$BUCKET_NAME, REGION=$REGION}"
+#Update function to set environment variables and timeout
+echo "Updating function to set environment variables: $BUCKET_NAME and $REGION and TIMEOT to $TIMEOUT"
+aws lambda update-function-configuration --function-name $FUNCTION_NAME --environment "Variables={BUCKET=$BUCKET_NAME, REGION=$REGION}" --timeout $TIMEOUT
 
 #Create API REST gateway
 # Documentación https://docs.aws.amazon.com/es_es/lambda/latest/dg/services-apigateway-tutorial.html
