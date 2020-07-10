@@ -26,34 +26,35 @@ class ZipHandler {
 	}
 
 	async process() {
+		// _fname is the filezip full name
 		let _fname = `${this.archiveFolderPath}/${this.archiveFileName}`;
+
+		// Defining the stream to upload the file. 
+		// s3StreamUpload: streamPassThrough, 
+		// uploaded: S3 function to upload the zip file
 		const { s3StreamUpload, uploaded } = this.s3Handler.writeStream(process.env.BUCKET, process.env.REGION, _fname);
+
+		// Defining the download streams (these are the separated files)
 		const s3DownloadStreams = this.s3DownloadStreams();
 
 		await new Promise((resolve, reject) => {
 			const archive = Archiver(this.archiveFormat);
-			archive.on('error', (error) => {
-				throw new Error(`${error.name} ${error.code} ${error.message} ${error.path} ${error.stack}`);
-			});
+			
+			archive.on('error', (error) => { throw new Error(`${error.name} ${error.code} ${error.message} ${error.path} ${error.stack}`); });
 
-			s3StreamUpload.on('close', function (){
-				console.log("here in on close");
-				resolve();
-			});
-			s3StreamUpload.on('end', function (){
-				console.log("here in on end");
-				resolve();
-			});
+			s3StreamUpload.on('close',  resolve);
+			s3StreamUpload.on('end',  resolve);
 			s3StreamUpload.on('error', reject);
-
 			archive.pipe(s3StreamUpload);
-			s3DownloadStreams.forEach((streamDetails) => {
-				archive.append(streamDetails.stream, { name: streamDetails.filename })});
+
+			// Appending files to archived zip file
+			s3DownloadStreams.forEach((streamDetails) => { archive.append(streamDetails.stream, { name: streamDetails.filename })});
 			archive.finalize();
 		}).catch((error) => {
 			throw new Error(`${error.code} ${error.message} ${error.data}`);
 		});
 
+		// Starting the upload
 		await uploaded.promise();
 		console.log('done');
 	}
