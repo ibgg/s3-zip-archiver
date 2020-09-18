@@ -12,7 +12,7 @@ exports.handler= async (event, ctx, cb) => {
 	const { keys, archiveFileName, archiveFolderPath, archiveFormat } = event;
 	
     let params = {
-      FunctionName: "s3-files-archiver",
+      FunctionName: "files-archiver",
       InvocationType: "Event",  // <--- This is KEY as it tells Lambda to start execution but immediately return / not wait.
       Payload: JSON.stringify( event )
     };
